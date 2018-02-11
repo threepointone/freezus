@@ -1,9 +1,12 @@
 // @flow
 import React, { Component, Fragment, type Node } from 'react';
-import { createStore } from 'redux';
+import { createStore, type Store } from 'redux';
 import { Provider } from 'react-redux';
 
 class Freeze extends Component<{ cold: boolean, children: Node }> {
+  context: {
+    store: ?Store,
+  };
   static contextTypes = {
     store: x => null,
   };
@@ -45,11 +48,13 @@ class Freeze extends Component<{ cold: boolean, children: Node }> {
       store: this.context.store,
     };
   }
-
-  render() {
+  componentDidUpdate() {
     if (this.context.store && !this.props.cold) {
       this.frozen = this.context.store.getState();
     }
+  }
+
+  render() {
     return <Provider store={this.store}>{this.props.children}</Provider>;
   }
 }
@@ -61,20 +66,20 @@ type Spec = {
   children: Node,
   enter?: void => ?Promise<void>,
   leave?: void => ?Promise<void>,
-
 };
 
 type SpecUnit = Spec & { ctr: number, enterRef?: Ref, leaveRef?: Ref };
 
-type PagerProps = Spec & { wrap?: typeof Component };
+type PageProps = Spec & { wrap?: typeof Component };
 
-export class Pager extends Component<PagerProps> {
+export class Page extends Component<PageProps> {
   ctr = 0;
   createLeaveRef = (ctr: number) => {
     return (ele: any) => {
       const found = ele && this.stack.find(x => x.ctr === ctr);
       if (found && ele) {
         (async x => {
+          // todo - cancel any onenters on this
           await (found.leave && found.leave());
           this.stack = this.stack.filter(x => x !== found);
           this.forceUpdate();
@@ -83,13 +88,16 @@ export class Pager extends Component<PagerProps> {
     };
   };
   createEnterRef = (ctr: number) => {
-    return (ele:any) => {
+    return (ele: any) => {
       const found = ele && this.stack.find(x => x.ctr === ctr);
       if (found && ele) {
-        found.enter && found.enter()
+        (async x => {
+          // todo - cancel any onleaves on this
+          await (found.enter && found.enter());
+        })();
       }
-    }
-  }
+    };
+  };
   stack: Array<SpecUnit> = [
     {
       id: this.props.id,
@@ -102,9 +110,18 @@ export class Pager extends Component<PagerProps> {
     },
   ];
 
-  componentWillReceiveProps(newProps: PagerProps) {
+  componentWillReceiveProps(newProps: PageProps) {
+    let found;
     if (newProps.id === this.stack[0].id) {
       Object.assign(this.stack[0], newProps);
+    } else if ((found = this.stack.find(x => x.id === newProps.id))) {
+      this.stack = [found, ...this.stack.filter(x => x !== found)];
+      Object.assign(this.stack[0], {
+        leaveRef: this.createLeaveRef(this.stack[0].ctr),
+        enterRef: this.createEnterRef(this.stack[0].ctr),
+      });
+      // todo
+      // - cancel existing onleave/onenter
     } else {
       this.ctr++;
       this.stack.unshift({

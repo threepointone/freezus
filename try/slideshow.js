@@ -3,7 +3,7 @@ import 'babel-polyfill';
 import React, { Component, Fragment, type Node } from 'react';
 import { render, findDOMNode } from 'react-dom';
 
-import { Pager } from '../src';
+import { Page } from '../src';
 
 class Slide extends Component<{value: number}> {
   render() {
@@ -28,14 +28,14 @@ class Slideshow extends Component<{}, {slide: number}> {
     const { slide } = this.state;
     return (
       <div>
-        <Pager
+        <Page
           id={this.state.slide + ''}
           leave={async ele => {
             await sleep(1000);
           }}
         >
-          <Slide value={this.state.slide} ref={ele => this.refs[slide]= ele}/>
-        </Pager>
+          <Slide value={this.state.slide} />
+        </Page>
         <button onClick={() => this.setState({ slide: slide - 1 })}>
           back
         </button>

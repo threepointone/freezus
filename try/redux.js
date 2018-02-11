@@ -6,7 +6,7 @@ import React, { Component, Fragment } from 'react';
 import type { Node } from 'react';
 import { render, findDOMNode } from 'react-dom';
 
-import { Pager } from '../src';
+import { Page } from '../src';
 
 import { createStore, combineReducers } from 'redux';
 import { connect, Provider } from 'react-redux';
@@ -62,12 +62,12 @@ const App = connect(select, { increment, decrement })(props => (
   <Fragment>
     <button onClick={props.decrement}>back</button>
     <button onClick={props.increment}>next</button>
-    <Pager
+    <Page
       id={props.count}
       leave={async () => {
         await sleep(1000);
       }}
-    ><Counter /></Pager>
+    ><Counter /></Page>
   </Fragment>
 ));
 

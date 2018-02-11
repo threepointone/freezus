@@ -1,11 +1,11 @@
 ```jsx
-<Transition
-  id={key}
+<Page
+  id={key} // change this for every transition
   enter={async () => ...}
   leave={async () => {
     // do whatever!
     // the previous render sticks around until this function exits
-    // and by magic, redux state is frozen inside it!!!
+    // and by magic, redux state is frozen inside it!
     // local state and everything else works as expected
 
     // you can now manually animate that old element out,
@@ -14,23 +14,11 @@
   }}
 >
   <SomeContent/>
-</Stack>
+</Page>
 ```
-
-optional
-
-* wrap (vr/native/etc)
-
-examples -
-
-* ~ counter
-* ~ slideshow
-* using with refs
-* using with call-return
-* reversible?
 
 todo -
 
-* cancellables
+* cancellables/reuse leaving instance
 * freeze react-router
 * freeze anything on context
