@@ -1,6 +1,6 @@
 // @flow
 import React, { Component, Fragment, type Node } from 'react';
-import { createStore, type Store } from 'redux';
+import { type Store } from 'redux';
 import { Provider } from 'react-redux';
 
 class Freeze extends Component<{ cold: boolean, children: Node }> {
@@ -39,7 +39,7 @@ class Freeze extends Component<{ cold: boolean, children: Node }> {
   };
 
   frozen = this.context.store && this.context.store.getState();
-  
+
   componentDidUpdate() {
     if (this.context.store && !this.props.cold) {
       this.frozen = this.context.store.getState();
@@ -60,15 +60,14 @@ type Spec = {
   leave?: void => ?Promise<void>,
 };
 
-type SpecUnit = Spec & { ctr: number, enterRef?: Ref, leaveRef?: Ref };
+type SpecUnit = Spec & { enterRef?: Ref, leaveRef?: Ref };
 
 type PageProps = Spec & { wrap?: typeof Component };
 
 export class Page extends Component<PageProps> {
-  ctr = 0;
-  createLeaveRef = (ctr: number) => {
+  createLeaveRef = (id: string) => {
     return (ele: any) => {
-      const found = ele && this.stack.find(x => x.ctr === ctr);
+      const found = ele && this.stack.find(x => x.id === id);
       if (found && ele) {
         (async x => {
           // todo - cancel any onenters on this
@@ -79,9 +78,9 @@ export class Page extends Component<PageProps> {
       }
     };
   };
-  createEnterRef = (ctr: number) => {
+  createEnterRef = (id: string) => {
     return (ele: any) => {
-      const found = ele && this.stack.find(x => x.ctr === ctr);
+      const found = ele && this.stack.find(x => x.id === id);
       if (found && ele) {
         (async x => {
           // todo - cancel any onleaves on this
@@ -96,9 +95,8 @@ export class Page extends Component<PageProps> {
       children: this.props.children,
       leave: this.props.leave,
       enter: this.props.enter,
-      ctr: this.ctr,
-      leaveRef: this.createLeaveRef(this.ctr),
-      enterRef: this.createEnterRef(this.ctr),
+      leaveRef: this.createLeaveRef(this.props.id),
+      enterRef: this.createEnterRef(this.props.id),
     },
   ];
 
@@ -109,17 +107,15 @@ export class Page extends Component<PageProps> {
     } else if ((found = this.stack.find(x => x.id === newProps.id))) {
       this.stack = [found, ...this.stack.filter(x => x !== found)];
       Object.assign(this.stack[0], {
-        leaveRef: this.createLeaveRef(this.stack[0].ctr),
-        enterRef: this.createEnterRef(this.stack[0].ctr),
+        leaveRef: this.createLeaveRef(this.stack[0].id),
+        enterRef: this.createEnterRef(this.stack[0].id),
       });
       // todo
       // - cancel existing onleave/onenter
     } else {
-      this.ctr++;
       this.stack.unshift({
-        ctr: this.ctr,
-        leaveRef: this.createLeaveRef(this.ctr),
-        enterRef: this.createEnterRef(this.ctr),
+        leaveRef: this.createLeaveRef(newProps.id),
+        enterRef: this.createEnterRef(newProps.id),
         ...newProps,
       });
     }
@@ -129,8 +125,8 @@ export class Page extends Component<PageProps> {
 
     return (
       <Wrap>
-        {this.stack.map(({ id, ctr, children, enterRef, leaveRef }, i) => (
-          <Freeze key={ctr} cold={i !== 0} ref={i !== 0 ? leaveRef : enterRef}>
+        {this.stack.map(({ id, children, enterRef, leaveRef }, i) => (
+          <Freeze key={id} cold={i !== 0} ref={i !== 0 ? leaveRef : enterRef}>
             {children}
           </Freeze>
         ))}
