@@ -1,5 +1,7 @@
 ## freezus
 
+[work in progress]
+
 [ost](https://soundcloud.com/sahandii/cold-as-ice-remake)
 
 `yarn add freezus`
@@ -21,8 +23,7 @@ import Transition from 'freezus'
     // you can now manually animate that old element out,
     // do a shared element transition, whatever.
     // use jquery for all I care
-  }}
->
+  }}>
   <SomeContent/>
 </Transition>
 ```
@@ -44,5 +45,7 @@ leave={async cancelled => {
 
 todo -
 
+* examples
+* tests
 * freeze react-router
 * freeze anything on context
