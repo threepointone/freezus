@@ -6,7 +6,7 @@ import React, { Component, Fragment } from 'react';
 import type { Node } from 'react';
 import { render, findDOMNode } from 'react-dom';
 
-import { Page } from '../src';
+import Page from '../src';
 
 import { createStore, combineReducers } from 'redux';
 import { connect, Provider } from 'react-redux';

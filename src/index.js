@@ -65,7 +65,7 @@ type SpecUnit = Spec & { enterRef?: Ref, leaveRef?: Ref };
 
 type PageProps = Spec & { wrap?: typeof Component };
 
-export class Page extends Component<PageProps> {
+export default class Page extends Component<PageProps> {
   entering: { [id: string]: ?Object } = {};
   leaving: { [id: string]: ?Object } = {};
   createLeaveRef = (id: string) => {

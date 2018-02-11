@@ -3,7 +3,7 @@ import 'babel-polyfill';
 import React, { Component, Fragment, type Node } from 'react';
 import { render, findDOMNode } from 'react-dom';
 
-import { Page } from '../src';
+import Page from '../src';
 
 class Slide extends Component<{value: number}> {
   render() {
