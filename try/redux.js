@@ -65,7 +65,7 @@ const App = connect(select, { increment, decrement })(props => (
     <Page
       id={props.count}
       leave={async () => {
-        await sleep(1000);
+        await sleep(2000);
       }}
     ><Counter /></Page>
   </Fragment>

@@ -52,12 +52,13 @@ class Freeze extends Component<{ cold: boolean, children: Node }> {
 }
 
 type Ref = any => void;
+type Cancelled = () => boolean;
 
 type Spec = {
   id: string,
   children: Node,
-  enter?: void => ?Promise<void>,
-  leave?: void => ?Promise<void>,
+  enter?: Cancelled => ?Promise<void>,
+  leave?: Cancelled => ?Promise<void>,
 };
 
 type SpecUnit = Spec & { enterRef?: Ref, leaveRef?: Ref };
@@ -65,15 +66,24 @@ type SpecUnit = Spec & { enterRef?: Ref, leaveRef?: Ref };
 type PageProps = Spec & { wrap?: typeof Component };
 
 export class Page extends Component<PageProps> {
+  entering: { [id: string]: ?Object } = {};
+  leaving: { [id: string]: ?Object } = {};
   createLeaveRef = (id: string) => {
     return (ele: any) => {
       const found = ele && this.stack.find(x => x.id === id);
       if (found && ele) {
-        (async x => {
-          // todo - cancel any onenters on this
-          await (found.leave && found.leave());
-          this.stack = this.stack.filter(x => x !== found);
-          this.forceUpdate();
+        (async () => {
+          if (this.entering[id]) {
+            this.entering[id] = null;
+          }
+          const token = (this.leaving[id] = {});
+          await (found.leave && found.leave(() => this.leaving[id] !== token));
+          if (this.leaving[id] === token) {
+            this.stack = this.stack.filter(x => x !== found);
+            this.leaving[id] = null;
+            this.forceUpdate();
+            delete this.leaving[id];
+          }
         })();
       }
     };
@@ -82,9 +92,16 @@ export class Page extends Component<PageProps> {
     return (ele: any) => {
       const found = ele && this.stack.find(x => x.id === id);
       if (found && ele) {
-        (async x => {
-          // todo - cancel any onleaves on this
-          await (found.enter && found.enter());
+        (async () => {
+          if (this.leaving[id]) {
+            this.leaving[id] = null;
+          }
+          const token = (this.entering[id] = {});
+          await (found.enter && found.enter(() => this.entering[id] !== token));
+          if (this.entering[id] === token) {
+            this.entering[id] = null;
+            delete this.entering[id];
+          }
         })();
       }
     };
@@ -107,11 +124,9 @@ export class Page extends Component<PageProps> {
     } else if ((found = this.stack.find(x => x.id === newProps.id))) {
       this.stack = [found, ...this.stack.filter(x => x !== found)];
       Object.assign(this.stack[0], {
-        leaveRef: this.createLeaveRef(this.stack[0].id),
-        enterRef: this.createEnterRef(this.stack[0].id),
+        leaveRef: this.createLeaveRef(newProps.id),
+        enterRef: this.createEnterRef(newProps.id),
       });
-      // todo
-      // - cancel existing onleave/onenter
     } else {
       this.stack.unshift({
         leaveRef: this.createLeaveRef(newProps.id),
