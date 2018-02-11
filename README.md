@@ -35,6 +35,5 @@ leave={async cancelled => {
 
 todo -
 
-* cancellables/reuse leaving instance
 * freeze react-router
 * freeze anything on context
