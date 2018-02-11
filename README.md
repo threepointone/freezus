@@ -1,10 +1,8 @@
-freezus
----
+## freezus
 
 [ost](https://soundcloud.com/sahandii/cold-as-ice-remake)
 
 `yarn add freezus`
-
 
 ```jsx
 import Transition from 'freezus'
