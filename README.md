@@ -17,6 +17,22 @@
 </Page>
 ```
 
+cancellation
+---
+
+`enter` and `leave` receive a function that tests whether
+a transition has been cancelled. you can use this to synchronize stuff.
+
+```jsx
+leave={async cancelled => {
+  await sleep(1000)
+  if(!cancelled()){
+    // do the thing
+  }
+  ...
+}}
+```
+
 todo -
 
 * cancellables/reuse leaving instance

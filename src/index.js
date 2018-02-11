@@ -10,9 +10,6 @@ class Freeze extends Component<{ cold: boolean, children: Node }> {
   static contextTypes = {
     store: x => null,
   };
-  static childContextTypes = {
-    store: x => null,
-  };
 
   store = {
     getState: () => {
@@ -42,12 +39,7 @@ class Freeze extends Component<{ cold: boolean, children: Node }> {
   };
 
   frozen = this.context.store && this.context.store.getState();
-
-  getChildContext() {
-    return {
-      store: this.context.store,
-    };
-  }
+  
   componentDidUpdate() {
     if (this.context.store && !this.props.cold) {
       this.frozen = this.context.store.getState();
