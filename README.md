@@ -1,5 +1,17 @@
+freezus
+---
+
+[ost](https://soundcloud.com/sahandii/cold-as-ice-remake)
+
+`yarn add freezus`
+
+
 ```jsx
-<Page
+import Transition from 'freezus'
+
+// ...
+
+<Transition
   id={key} // change this for every transition
   enter={async () => ...}
   leave={async () => {
@@ -14,11 +26,10 @@
   }}
 >
   <SomeContent/>
-</Page>
+</Transition>
 ```
 
-cancellation
----
+## cancellation
 
 `enter` and `leave` receive a function that tests whether
 a transition has been cancelled. you can use this to synchronize stuff.
