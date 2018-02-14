@@ -3,29 +3,33 @@ import React, { Component, Fragment, type Node } from 'react';
 import { type Store } from 'redux';
 import { Provider } from 'react-redux';
 
+// this component freezes redux state for its children when `cold` is true
+// after every render, it saves a snapshot of the last used redux state
+// it also replacies the redux store with a 'proxy' store, which, when cold
+// - no-ops all action dispatches
+// - returns state from the snapshot
 class Freeze extends Component<{ cold: boolean, children: Node }> {
   context: {
-    store: ?Store,
+    store: Store,
   };
   static contextTypes = {
     store: x => null,
   };
-
+  // our proxy store
   store = {
     getState: () => {
       if (this.props.cold) {
-        return this.frozen;
+        return this.snapshot;
       }
-      return this.context.store && this.context.store.getState();
+      return this.context.store.getState();
     },
     dispatch: action => {
-      if (this.context.store && !this.props.cold) {
+      if (!this.props.cold) {
         this.context.store.dispatch(action);
       }
     },
     subscribe: listener => {
       return (
-        this.context.store &&
         this.context.store.subscribe(() => {
           if (!this.props.cold) {
             listener();
@@ -34,15 +38,16 @@ class Freeze extends Component<{ cold: boolean, children: Node }> {
       );
     },
     replaceReducer: next => {
-      return this.context.store && this.context.store.replaceReducer(next);
+      // should this be a no-op too?
+      return this.context.store.replaceReducer(next);
     },
   };
 
-  frozen = this.context.store && this.context.store.getState();
+  snapshot = this.context.store && this.context.store.getState();
 
   componentDidUpdate() {
     if (this.context.store && !this.props.cold) {
-      this.frozen = this.context.store.getState();
+      this.snapshot = this.context.store.getState();
     }
   }
 
@@ -52,100 +57,161 @@ class Freeze extends Component<{ cold: boolean, children: Node }> {
 }
 
 type Ref = any => void;
-type Cancelled = () => boolean;
+type CancelledFn = () => boolean;
+type ID = string | number;
 
-type Spec = {
-  id: string,
+type TransitionProps = {
+  id: ID,
   children: Node,
-  enter?: Cancelled => ?Promise<void>,
-  leave?: Cancelled => ?Promise<void>,
+  onEnter?: CancelledFn => ?Promise<void>,
+  onExit?: CancelledFn => ?Promise<void>,
 };
 
-type SpecUnit = Spec & { enterRef?: Ref, leaveRef?: Ref };
+type TransitionState = {
+  stack: Array<TransitionProps & { enterRef?: Ref, exitRef?: Ref }>,
+};
 
-type PageProps = Spec & { wrap?: typeof Component };
-
-export default class Page extends Component<PageProps> {
-  entering: { [id: string]: ?Object } = {};
-  leaving: { [id: string]: ?Object } = {};
-  createLeaveRef = (id: string) => {
+export default class Transition extends Component<
+  TransitionProps,
+  TransitionState,
+> {
+  entering: { [id: ID]: ?Object } = {};
+  exiting: { [id: ID]: ?Object } = {};
+  createExitRef = (id: ID) => {
     return (ele: any) => {
-      const found = ele && this.stack.find(x => x.id === id);
-      if (found && ele) {
+      const found = ele && this.state.stack.find(x => x.id === id);
+      if (found) {
         (async () => {
           if (this.entering[id]) {
             this.entering[id] = null;
           }
-          const token = (this.leaving[id] = {});
-          await (found.leave && found.leave(() => this.leaving[id] !== token));
-          if (this.leaving[id] === token) {
-            this.stack = this.stack.filter(x => x !== found);
-            this.leaving[id] = null;
-            this.forceUpdate();
-            delete this.leaving[id];
+          const token = (this.exiting[id] = {});
+          if (found.onExit) {
+            await found.onExit(() => this.exiting[id] !== token);
+          }
+
+          if (this.exiting[id] === token) {
+            delete this.exiting[id];
+            this.setState({
+              stack: this.state.stack.filter(x => x !== found),
+            });
           }
         })();
       }
     };
   };
-  createEnterRef = (id: string) => {
+  createEnterRef = (id: ID) => {
     return (ele: any) => {
-      const found = ele && this.stack.find(x => x.id === id);
-      if (found && ele) {
+      const found = ele && this.state.stack.find(x => x.id === id);
+      if (found) {
         (async () => {
-          if (this.leaving[id]) {
-            this.leaving[id] = null;
+          if (this.exiting[id]) {
+            this.exiting[id] = null;
           }
           const token = (this.entering[id] = {});
-          await (found.enter && found.enter(() => this.entering[id] !== token));
+          if (found.onEnter) {
+            await found.onEnter(() => this.entering[id] !== token);
+          }
+
           if (this.entering[id] === token) {
-            this.entering[id] = null;
             delete this.entering[id];
           }
         })();
       }
     };
   };
-  stack: Array<SpecUnit> = [
-    {
-      id: this.props.id,
-      children: this.props.children,
-      leave: this.props.leave,
-      enter: this.props.enter,
-      leaveRef: this.createLeaveRef(this.props.id),
-      enterRef: this.createEnterRef(this.props.id),
-    },
-  ];
+  state = {
+    stack: [
+      {
+        id: this.props.id,
+        children: this.props.children,
+        onExit: this.props.onExit,
+        onEnter: this.props.onEnter,
+        exitRef: this.createExitRef(this.props.id),
+        enterRef: this.createEnterRef(this.props.id),
+      },
+    ],
+  };
 
-  componentWillReceiveProps(newProps: PageProps) {
+  componentWillReceiveProps(newProps: TransitionProps) {
     let found;
-    if (newProps.id === this.stack[0].id) {
-      Object.assign(this.stack[0], newProps);
-    } else if ((found = this.stack.find(x => x.id === newProps.id))) {
-      this.stack = [found, ...this.stack.filter(x => x !== found)];
-      Object.assign(this.stack[0], {
-        leaveRef: this.createLeaveRef(newProps.id),
-        enterRef: this.createEnterRef(newProps.id),
+    // todo - shallow equal test to prevent a render
+
+    if (newProps.id === this.state.stack[0].id) {
+      this.setState({
+        stack: [
+          { ...this.state.stack[0], ...newProps },
+          ...this.state.stack.slice(1),
+        ],
+      });
+    } else if ((found = this.state.stack.find(x => x.id === newProps.id))) {
+      this.setState({
+        stack: [
+          {
+            ...found,
+            exitRef: this.createExitRef(newProps.id),
+            enterRef: this.createEnterRef(newProps.id),
+          },
+          ...this.state.stack.filter(x => x !== found),
+        ],
       });
     } else {
-      this.stack.unshift({
-        leaveRef: this.createLeaveRef(newProps.id),
-        enterRef: this.createEnterRef(newProps.id),
-        ...newProps,
+      this.setState({
+        stack: [
+          {
+            exitRef: this.createExitRef(newProps.id),
+            enterRef: this.createEnterRef(newProps.id),
+            ...newProps,
+          },
+          ...this.state.stack,
+        ],
       });
     }
   }
   render() {
-    const Wrap = this.props.wrap || Fragment;
-
     return (
-      <Wrap>
-        {this.stack.map(({ id, children, enterRef, leaveRef }, i) => (
-          <Freeze key={id} cold={i !== 0} ref={i !== 0 ? leaveRef : enterRef}>
+      <Fragment>
+        {this.state.stack.map(({ id, children, enterRef, exitRef }, i) => (
+           <Freeze key={id} cold={i !== 0} ref={i !== 0 ? exitRef : enterRef}>
             {children}
           </Freeze>
         ))}
-      </Wrap>
+      </Fragment>
     );
   }
 }
+
+// class ReactTransitionChild extends React.Component<{}, {
+//   transition: 'entering' | 'entered' | 'exiting' | 'exited'
+// }>{
+//   state = {
+//     transition: ''
+//   }
+//   render(){
+//     const {onEnter, onExit, }
+//     return <Transition
+//   }
+// }
+//
+// class ReactTransition extends React.Component{
+//
+//   render(){
+//     return <Transition></Transition>
+//   }
+// }
+
+//
+// ## TransitionGroup
+//
+// ```jsx
+// <TransitionGroup
+//   onEnter={async id => ...}
+//   onExit={async id => ...}
+//   onMove={async id => ...}
+//   >
+//   <Child key='a'/>
+//   <Child key='b'/>
+//   <Child key='c'/>
+// </TransitionGroup>
+//
+// ```

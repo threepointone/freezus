@@ -1,6 +1,6 @@
 // @flow
 // @format
-import 'babel-polyfill';
+import "regenerator-runtime/runtime";
 import React, { Component, Fragment } from 'react';
 
 import type { Node } from 'react';
@@ -64,7 +64,7 @@ const App = connect(select, { increment, decrement })(props => (
     <button onClick={props.increment}>next</button>
     <Page
       id={props.count}
-      leave={async () => {
+      onExit={async () => {
         await sleep(2000);
       }}
     ><Counter /></Page>

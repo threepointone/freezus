@@ -1,31 +1,31 @@
 // @flow
-import 'babel-polyfill';
+import "regenerator-runtime/runtime";
 import React, { Component, Fragment, type Node } from 'react';
 import { render, findDOMNode } from 'react-dom';
 import { Motion, spring, presets } from 'react-motion';
 
-import Page from '../src';
+import Transition from '../src';
 
 class Slide extends Component<
-  { value: number, direction: 'forward' | 'backward' },
+  { children: Node, direction: 'forward' | 'backward' },
   { left: number, opacity: number },
 > {
   state = {
     left: 100 + (this.props.direction === 'forward' ? 100 : -100),
     opacity: 0,
   };
-  enter() {
+  enter = () => {
     this.setState({ left: 0, opacity: 1 });
     return sleep(2000);
-  }
-  leaveLeft() {
+  };
+  leaveLeft = () => {
     this.setState({ left: -100, opacity: 0 });
     return sleep(2000);
-  }
-  leaveRight() {
+  };
+  leaveRight = () => {
     this.setState({ left: 100, opacity: 0 });
     return sleep(2000);
-  }
+  };
 
   render() {
     return (
@@ -53,7 +53,7 @@ class Slide extends Component<
               ...vals,
             }}
           >
-            {this.props.value}
+            {this.props.children}
           </div>
         )}
       </Motion>
@@ -67,6 +67,20 @@ function sleep(n) {
   });
 }
 
+const refs: Map<any, any> = new Map();
+const eles: Map<any, any> = new Map();
+
+export function createRef(id: any) {
+  if (!refs.get(id)) {
+    refs.set(id, el => eles.set(id, el));
+  }
+  return refs.get(id);
+}
+
+export function getRef(id: any) {
+  return eles.get(id);
+}
+
 class Slideshow extends Component<
   {},
   { slide: number, direction: 'forward' | 'backward' },
@@ -75,49 +89,31 @@ class Slideshow extends Component<
     slide: 0,
     direction: 'forward',
   };
-  _refs = {};
-  eles = {};
-  createRef = i => {
-    if (!this._refs[i]) {
-      this._refs[i] = el => (this.eles[i] = el);
-    }
-    return this._refs[i];
+  next = () => {
+    this.setState({ slide: this.state.slide + 1, direction: 'forward' });
+  };
+  prev = () => {
+    this.setState({ slide: this.state.slide - 1, direction: 'backward' });
   };
   render() {
-    const { slide } = this.state;
+    const { slide, direction } = this.state;
     return (
       <div>
-        <button
-          onClick={() =>
-            this.setState({ slide: slide - 1, direction: 'backward' })
+        <button onClick={this.prev}>back</button>
+        <button onClick={this.next}>next</button>
+        <Transition
+          id={slide}
+          onEnter={() => getRef(slide).enter()}
+          onExit={() =>
+            this.state.direction === 'forward'
+              ? getRef(slide).leaveLeft()
+              : getRef(slide).leaveRight()
           }
         >
-          back
-        </button>
-        <button
-          onClick={() =>
-            this.setState({ slide: slide + 1, direction: 'forward' })
-          }
-        >
-          next
-        </button>
-        <Page
-          id={this.state.slide + ''}
-          enter={async () => {
-            await this.eles[slide].enter();
-          }}
-          leave={async () => {
-            await (this.state.direction === 'forward'
-              ? this.eles[slide].leaveLeft()
-              : this.eles[slide].leaveRight());
-          }}
-        >
-          <Slide
-            value={this.state.slide}
-            ref={this.createRef(slide)}
-            direction={this.state.direction}
-          />
-        </Page>
+          <Slide ref={createRef(slide)} direction={direction}>
+            {slide}
+          </Slide>
+        </Transition>
       </div>
     );
   }
