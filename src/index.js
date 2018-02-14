@@ -63,8 +63,8 @@ type ID = string | number;
 type TransitionProps = {
   id: ID,
   children: Node,
-  onEnter?: CancelledFn => ?Promise<void>,
-  onExit?: CancelledFn => ?Promise<void>,
+  onEnter?: (ID, CancelledFn) => ?Promise<void>,
+  onExit?: (ID, CancelledFn) => ?Promise<void>,
 };
 
 type TransitionState = {
@@ -87,7 +87,7 @@ export default class Transition extends Component<
           }
           const token = (this.exiting[id] = {});
           if (found.onExit) {
-            await found.onExit(() => this.exiting[id] !== token);
+            await found.onExit(id, () => this.exiting[id] !== token);
           }
 
           if (this.exiting[id] === token) {
@@ -110,7 +110,7 @@ export default class Transition extends Component<
           }
           const token = (this.entering[id] = {});
           if (found.onEnter) {
-            await found.onEnter(() => this.entering[id] !== token);
+            await found.onEnter(id, () => this.entering[id] !== token);
           }
 
           if (this.entering[id] === token) {

@@ -31,11 +31,11 @@ import Transition from 'freezus'
 
 ## cancellation
 
-onEnter and onExit receive a function that tests whether a transition
+callbacks also receive a function `cancelled` that tests whether a transition
 has been cancelled. you can use this to synchronize stuff.
 
 ```jsx
-onExit={async cancelled => {
+onExit={async (id, cancelled) => {
   await sleep(1000)
   if(!cancelled()){
     // do the thing
