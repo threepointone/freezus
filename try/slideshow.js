@@ -32,28 +32,30 @@ const swoosh = {
     }),
 };
 
+const config = {
+  enterLeft: { left: -100, opacity: 0 },
+  enterRight: { left: 100, opacity: 0 },
+  enter: { left: 0, opacity: 1, ...swoosh },
+  exitLeft: { left: -100, opacity: 0, ...swoosh },
+  exitRight: { left: 100, opacity: 0, ...swoosh },
+};
+
+const Box = posed.div(config);
+
 class Slide extends Component<
   { children: Node, initial: 'enterLeft' | 'enterRight' },
   { left: number, opacity: number },
 > {
-  config = {
-    enterLeft: { left: -100, opacity: 0, ...swoosh },
-    enterRight: { left: 100, opacity: 0, ...swoosh },
-    enter: { left: 0, opacity: 1, ...swoosh },
-    exitLeft: { left: -100, opacity: 0, ...swoosh },
-    exitRight: { left: 100, opacity: 0, ...swoosh },
-  };
-
-  Box = posed.div(this.config);
-
   render() {
     return (
       <Transition.Consumer>
         {pose => (
-          // $FlowFixMe
-          <this.Box pose={pose || this.props.initial} style={boxStyle}>
+          <Box
+            pose={pose}
+            style={{ ...boxStyle, ...config[this.props.initial] }}
+          >
             {this.props.children}
-          </this.Box>
+          </Box>
         )}
       </Transition.Consumer>
     );
@@ -72,18 +74,21 @@ class Slideshow extends Component<
     slide: 0,
     direction: 'forward',
   };
+
   next = () => {
     this.setState({
       slide: this.state.slide + 1,
       direction: 'forward',
     });
   };
+
   prev = () => {
     this.setState({
       slide: this.state.slide - 1,
       direction: 'backward',
     });
   };
+
   render() {
     return (
       <div style={{ marginLeft: 200, position: 'relative' }}>

@@ -68,10 +68,12 @@ class Frame extends React.Component<
   { store: any },
 > {
   state = { store: null };
+  iterator: ?AsyncGenerator<*, *, *>;
+
   reduce(action) {
     this.setState(x => ({ store: this.props.reduce(x.store, action) }));
   }
-  iterator: ?AsyncGenerator<*, *, *>;
+
   async onEnter() {
     let cancelled = false;
     if (this.props.onEnter) {
@@ -89,6 +91,7 @@ class Frame extends React.Component<
       }
     }
   }
+
   async onExit() {
     let cancelled = false;
     if (this.props.onExit) {
@@ -110,7 +113,7 @@ class Frame extends React.Component<
     }
   }
 
-  async componentDidMount() {
+  componentDidMount() {
     this.onEnter();
   }
 
