@@ -1,6 +1,6 @@
 // @flow
 // @format
-import "regenerator-runtime/runtime";
+import 'regenerator-runtime/runtime';
 import React, { Component, Fragment } from 'react';
 
 import type { Node } from 'react';
@@ -64,10 +64,12 @@ const App = connect(select, { increment, decrement })(props => (
     <button onClick={props.increment}>next</button>
     <Page
       id={props.count}
-      onExit={async () => {
+      onExit={async function*() {
         await sleep(2000);
       }}
-    ><Counter /></Page>
+    >
+      <Counter />
+    </Page>
   </Fragment>
 ));
 

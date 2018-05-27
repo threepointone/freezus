@@ -13,8 +13,8 @@ import Transition from 'freezus'
 
 <Transition
   id={key} // change this for every transition
-  onEnter={async id => ...}
-  onExit={async id => {
+  onEnter={async function*() => ...}
+  onExit={async function*() => {
     // do whatever!
     // the previous render sticks around until this function exits
     // and by magic, redux state is frozen inside it!
@@ -29,20 +29,37 @@ import Transition from 'freezus'
 </Transition>
 ```
 
+## how does it work
+
+* fragments to render multiple phases at once
+* lifecycle - onEnter, onExit
+* cancellable
+* freeze redux state for the subtree
+
+the problem
+
+* by rendering a new view, we implicitly destroy the old view (if it was different)
+* alternately, we have to manually maintain ui state, mixing our animation concerns with business logic.
+* `<Transition/>` abstracts that for you
+
 ## cancellation
 
-callbacks also receive a function `cancelled` that tests whether a transition
-has been cancelled. you can use this to synchronize stuff.
+async generators handle cancellation pretty nicely
 
 ```jsx
-onExit={async (id, cancelled) => {
-  await sleep(1000)
-  if(!cancelled()){
+onExit={async function*() => {
+  try{
+    await sleep(1000)
+  }  
+  catch(err){
     // do the thing
+  }  
+  finally {
+    // or here
   }
-  ...
 }}
 ```
+
 todo -
 
 * examples

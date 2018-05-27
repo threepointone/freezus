@@ -1,5 +1,5 @@
 // @flow
-import React, { Component, Fragment, type Node } from 'react';
+import React, { Component, type Node } from 'react';
 import { type Store } from 'redux';
 import { Provider } from 'react-redux';
 
@@ -29,13 +29,11 @@ class Freeze extends Component<{ cold: boolean, children: Node }> {
       }
     },
     subscribe: listener => {
-      return (
-        this.context.store.subscribe(() => {
-          if (!this.props.cold) {
-            listener();
-          }
-        })
-      );
+      return this.context.store.subscribe(() => {
+        if (!this.props.cold) {
+          listener();
+        }
+      });
     },
     replaceReducer: next => {
       // should this be a no-op too?
@@ -56,127 +54,132 @@ class Freeze extends Component<{ cold: boolean, children: Node }> {
   }
 }
 
-type Ref = any => void;
-type CancelledFn = () => boolean;
-type ID = string | number;
+const FrameState = React.createContext(null);
 
-type TransitionProps = {
+class Frame extends React.Component<
+  {
+    children: Node,
+    onEnter: ?() => AsyncGenerator<*, *, *>,
+    onExit: ?() => AsyncGenerator<*, *, *>,
+    exiting: boolean,
+    reduce: (any, any) => any,
+    onExited: () => void,
+  },
+  { store: any },
+> {
+  state = { store: null };
+  reduce(action) {
+    this.setState(x => ({ store: this.props.reduce(x.store, action) }));
+  }
+  iterator: ?AsyncGenerator<*, *, *>;
+  async onEnter() {
+    if (this.props.onEnter) {
+      const iterator = (this.iterator = this.props.onEnter());
+      for await (const action of iterator) {
+        if (this.iterator !== iterator) {
+          // todo - iterator.cancel()
+          break;
+        }
+        this.reduce(action);
+      }
+    }
+  }
+  async onExit() {
+    if (this.props.onExit) {
+      const iterator = (this.iterator = this.props.onExit());
+      for await (const action of iterator) {
+        if (this.iterator !== iterator) {
+          break;
+          // todo - iterator.cancel()
+        }
+        this.reduce(action);
+      }
+    }
+    this.props.onExited();
+  }
+
+  async componentDidMount() {
+    this.onEnter();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (!prevProps.exiting && this.props.exiting) {
+      this.onExit();
+    } else if (prevProps.exiting && !this.props.exiting) {
+      this.onEnter();
+    }
+  }
+  render() {
+    return (
+      <FrameState.Provider value={this.state.store}>
+        {this.props.children}
+      </FrameState.Provider>
+    );
+  }
+}
+
+// ok, so. the basic idea here is to abtract out the logic that's
+// recreated by hand every time - maintain state for multiple components 'in flight'
+// during a transition, and render them. we recommend you use some
+// form of a 'stretchy' around your content, usally with style
+// `{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }`
+// or a flex version
+// `{ flex: 1, alignSelf: stretch }`
+// and position them during the transitions
+// <Transition will also clean up once a transition is 'done',
+// detected by when the `onExit` callback resolves.
+// if an `onEnter` occurs before an `onExit` finishes (ie - you render a component
+// again befire it's finished unmounting), then the same instance is reused,
+// letting you move it back in smoothly
+type ID = string | number;
+export type TransitionProps = {
   id: ID,
-  children: Node,
-  onEnter?: (ID, CancelledFn) => ?Promise<void>,
-  onExit?: (ID, CancelledFn) => ?Promise<void>,
+  children?: Node,
+  onEnter?: () => AsyncGenerator<*, *, *>,
+  onExit?: () => AsyncGenerator<*, *, *>,
+  reduce?: (any, any) => any,
 };
 
 type TransitionState = {
-  stack: Array<TransitionProps & { enterRef?: Ref, exitRef?: Ref }>,
+  stack: Array<TransitionProps>,
 };
 
 export default class Transition extends Component<
   TransitionProps,
   TransitionState,
 > {
-  entering: { [id: ID]: ?Object } = {};
-  exiting: { [id: ID]: ?Object } = {};
-  createExitRef = (id: ID) => {
-    return (ele: any) => {
-      const found = ele && this.state.stack.find(x => x.id === id);
-      if (found) {
-        (async () => {
-          if (this.entering[id]) {
-            this.entering[id] = null;
-          }
-          const token = (this.exiting[id] = {});
-          if (found.onExit) {
-            await found.onExit(id, () => this.exiting[id] !== token);
-          }
-
-          if (this.exiting[id] === token) {
-            delete this.exiting[id];
-            this.setState({
-              stack: this.state.stack.filter(x => x !== found),
-            });
-          }
-        })();
-      }
-    };
-  };
-  createEnterRef = (id: ID) => {
-    return (ele: any) => {
-      const found = ele && this.state.stack.find(x => x.id === id);
-      if (found) {
-        (async () => {
-          if (this.exiting[id]) {
-            this.exiting[id] = null;
-          }
-          const token = (this.entering[id] = {});
-          if (found.onEnter) {
-            await found.onEnter(id, () => this.entering[id] !== token);
-          }
-
-          if (this.entering[id] === token) {
-            delete this.entering[id];
-          }
-        })();
-      }
-    };
-  };
   state = {
-    stack: [
-      {
-        id: this.props.id,
-        children: this.props.children,
-        onExit: this.props.onExit,
-        onEnter: this.props.onEnter,
-        exitRef: this.createExitRef(this.props.id),
-        enterRef: this.createEnterRef(this.props.id),
-      },
-    ],
+    stack: [this.props],
   };
 
-  componentWillReceiveProps(newProps: TransitionProps) {
-    let found;
-    // todo - shallow equal test to prevent a render
+  static Consumer = FrameState.Consumer;
 
-    if (newProps.id === this.state.stack[0].id) {
-      this.setState({
-        stack: [
-          { ...this.state.stack[0], ...newProps },
-          ...this.state.stack.slice(1),
-        ],
-      });
-    } else if ((found = this.state.stack.find(x => x.id === newProps.id))) {
-      this.setState({
-        stack: [
-          {
-            ...found,
-            exitRef: this.createExitRef(newProps.id),
-            enterRef: this.createEnterRef(newProps.id),
-          },
-          ...this.state.stack.filter(x => x !== found),
-        ],
-      });
-    } else {
-      this.setState({
-        stack: [
-          {
-            exitRef: this.createExitRef(newProps.id),
-            enterRef: this.createEnterRef(newProps.id),
-            ...newProps,
-          },
-          ...this.state.stack,
-        ],
-      });
-    }
+  static getDerivedStateFromProps(
+    nextProps: TransitionProps,
+    prevState: TransitionState,
+  ): TransitionState {
+    return {
+      stack: [nextProps, ...prevState.stack.filter(x => x.id !== nextProps.id)],
+    };
   }
-  render() {
-    return (
-      <Fragment>
-        {this.state.stack.map(({ id, children, enterRef, exitRef }, i) => (
-           <Freeze key={id} cold={i !== 0} ref={i !== 0 ? exitRef : enterRef}>
+
+  render(): Node {
+    return this.state.stack.map(
+      ({ id, children, onEnter, onExit, reduce }, i) => (
+        <Freeze key={id} cold={i !== 0}>
+          <Frame
+            reduce={reduce || ((x, y) => y)}
+            exiting={i !== 0}
+            onEnter={onEnter}
+            onExit={onExit}
+            onExited={() => {
+              this.setState(x => ({ stack: x.stack.filter(l => l.id !== id) }));
+            }}
+          >
             {children}
-          </Freeze>
-        ))}
-      </Fragment>
+          </Frame>
+        </Freeze>
+      ),
     );
   }
 }

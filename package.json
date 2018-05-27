@@ -5,23 +5,27 @@
   "license": "MIT",
   "dependencies": {
     "babel-cli": "^6.26.0",
-    "react": "^16.2.0",
-    "react-redux": "^5.0.6",
-    "redux": "^3.7.2",
+    "nullthrows": "^1.0.1",
+    "react": "16.4.0",
+    "react-redux": "^5.0.7",
+    "redux": "^4.0.0",
     "regenerator-runtime": "^0.11.1"
   },
   "scripts": {
     "build": "babel src -d lib"
   },
   "devDependencies": {
+    "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-polyfill": "^6.26.0",
-    "babel-preset-env": "^1.6.1",
+    "babel-preset-env": "^1.7.0",
     "babel-preset-react": "^6.24.1",
     "babel-preset-stage-0": "^6.24.1",
-    "flow-bin": "^0.65.0",
-    "parcel-bundler": "^1.5.1",
-    "react-dom": "^16.2.0",
+    "flow-bin": "^0.73.0",
+    "parcel-bundler": "^1.8.1",
+    "popmotion-pose": "^1.5.0",
+    "react-dom": "16.4.0",
     "react-motion": "^0.5.2",
-    "react-native-web": "^0.4.0"
+    "react-native-web": "^0.7.2",
+    "react-pose": "^1.6.4"
   }
 }
