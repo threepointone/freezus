@@ -47,13 +47,11 @@ class Slide extends Component<
   { left: number, opacity: number },
 > {
   render() {
+    const style = { ...boxStyle, ...config[this.props.initial] };
     return (
       <Transition.Consumer>
         {pose => (
-          <Box
-            pose={pose}
-            style={{ ...boxStyle, ...config[this.props.initial] }}
-          >
+          <Box pose={pose} style={style}>
             {this.props.children}
           </Box>
         )}
