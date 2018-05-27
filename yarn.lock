@@ -3426,6 +3426,16 @@ popmotion@^8.2.1:
     stylefire "^2.0.2"
     tslib "^1.9.1"
 
+popmotion@^8.2.3:
+  version "8.2.3"
+  resolved "https://registry.yarnpkg.com/popmotion/-/popmotion-8.2.3.tgz#519b064388fd281245ef49eae21ed98206fec099"
+  dependencies:
+    framesync "^3.1.9"
+    hey-listen "^1.0.5"
+    style-value-types "^1.0.8"
+    stylefire "^2.0.2"
+    tslib "^1.9.1"
+
 pose-core@^0.5.2:
   version "0.5.2"
   resolved "https://registry.yarnpkg.com/pose-core/-/pose-core-0.5.2.tgz#955ff71feba1225539e086500ef193840d399659"

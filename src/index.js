@@ -73,29 +73,41 @@ class Frame extends React.Component<
   }
   iterator: ?AsyncGenerator<*, *, *>;
   async onEnter() {
+    let cancelled = false;
     if (this.props.onEnter) {
       const iterator = (this.iterator = this.props.onEnter());
       for await (const action of iterator) {
         if (this.iterator !== iterator) {
+          cancelled = true;
           // todo - iterator.cancel()
           break;
         }
         this.reduce(action);
+      }
+      if (this.iterator !== iterator) {
+        cancelled = true;
       }
     }
   }
   async onExit() {
+    let cancelled = false;
     if (this.props.onExit) {
       const iterator = (this.iterator = this.props.onExit());
       for await (const action of iterator) {
         if (this.iterator !== iterator) {
+          cancelled = true;
           break;
           // todo - iterator.cancel()
         }
         this.reduce(action);
       }
+      if (this.iterator !== iterator) {
+        cancelled = true;
+      }
     }
-    this.props.onExited();
+    if (!cancelled) {
+      this.props.onExited();
+    }
   }
 
   async componentDidMount() {

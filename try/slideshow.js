@@ -4,6 +4,7 @@ import React, { Component, Fragment, type Node } from 'react';
 import { render, findDOMNode } from 'react-dom';
 import nullthrows from 'nullthrows';
 import posed from 'react-pose';
+import { spring } from 'popmotion';
 import Transition from '../src';
 
 type ID = number | string;
@@ -22,17 +23,25 @@ const boxStyle = {
   justifyContent: 'center',
 };
 
+const swoosh = {
+  transition: props =>
+    spring({
+      ...props,
+      stiffness: 10,
+      damping: 10,
+    }),
+};
+
 class Slide extends Component<
   { children: Node, initial: 'enterLeft' | 'enterRight' },
   { left: number, opacity: number },
 > {
   config = {
-    enterLeft: { left: -100, opacity: 0 },
-    enterRight: { left: 100, opacity: 0 },
-    enter: { left: 0, opacity: 1 },
-    exitLeft: { left: -100, opacity: 0 },
-    exitRight: { left: 100, opacity: 0 },
-    initialPose: this.props.initial,
+    enterLeft: { left: -100, opacity: 0, ...swoosh },
+    enterRight: { left: 100, opacity: 0, ...swoosh },
+    enter: { left: 0, opacity: 1, ...swoosh },
+    exitLeft: { left: -100, opacity: 0, ...swoosh },
+    exitRight: { left: 100, opacity: 0, ...swoosh },
   };
 
   Box = posed.div(this.config);
@@ -42,7 +51,7 @@ class Slide extends Component<
       <Transition.Consumer>
         {pose => (
           // $FlowFixMe
-          <this.Box pose={pose} style={boxStyle}>
+          <this.Box pose={pose || this.props.initial} style={boxStyle}>
             {this.props.children}
           </this.Box>
         )}

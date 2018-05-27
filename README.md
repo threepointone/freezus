@@ -60,6 +60,12 @@ onExit={async function*() => {
 }}
 ```
 
+## state
+
+```jsx
+[actions][reducers];
+```
+
 todo -
 
 * examples
