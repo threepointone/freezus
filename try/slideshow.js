@@ -16,7 +16,6 @@ const boxStyle = {
   fontWeight: 'bold',
   display: 'flex',
   alignItems: 'center',
-  alignContent: 'center',
   justifyContent: 'center',
 };
 

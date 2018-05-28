@@ -108,9 +108,8 @@ class Frame extends React.Component<
 > {
   state = { store: null };
 
-  reduce = action => {
+  reduce = action =>
     this.setState(x => ({ store: this.props.reduce(x.store, action) }));
-  };
 
   render() {
     return (
@@ -197,38 +196,3 @@ export default class Transition extends Component<
     );
   }
 }
-
-// class ReactTransitionChild extends React.Component<{}, {
-//   transition: 'entering' | 'entered' | 'exiting' | 'exited'
-// }>{
-//   state = {
-//     transition: ''
-//   }
-//   render(){
-//     const {onEnter, onExit, }
-//     return <Transition
-//   }
-// }
-//
-// class ReactTransition extends React.Component{
-//
-//   render(){
-//     return <Transition></Transition>
-//   }
-// }
-
-//
-// ## TransitionGroup
-//
-// ```jsx
-// <TransitionGroup
-//   onEnter={async id => ...}
-//   onExit={async id => ...}
-//   onMove={async id => ...}
-//   >
-//   <Child key='a'/>
-//   <Child key='b'/>
-//   <Child key='c'/>
-// </TransitionGroup>
-//
-// ```
