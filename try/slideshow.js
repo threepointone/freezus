@@ -77,7 +77,6 @@ class Slideshow extends React.Component<
           id={this.state.slide}
           onEnter={async function*() {
             yield 'enter';
-            await sleep(2000);
           }}
           onExit={async function*() {
             yield this.state.direction === 'forward' ? 'exitLeft' : 'exitRight';
