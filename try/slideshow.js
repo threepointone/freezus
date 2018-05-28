@@ -1,13 +1,10 @@
 // @flow
 import 'regenerator-runtime/runtime';
-import React, { Component, Fragment, type Node } from 'react';
-import { render, findDOMNode } from 'react-dom';
-import nullthrows from 'nullthrows';
+import React, { type Node } from 'react';
+import { render } from 'react-dom';
 import posed from 'react-pose';
 import { spring } from 'popmotion';
 import Transition from '../src';
-
-type ID = number | string;
 
 const boxStyle = {
   width: 200,
@@ -42,29 +39,24 @@ const config = {
 
 const Box = posed.div(config);
 
-class Slide extends Component<
-  { children: Node, initial: 'enterLeft' | 'enterRight' },
-  { left: number, opacity: number },
-> {
-  render() {
-    const style = { ...boxStyle, ...config[this.props.initial] };
-    return (
-      <Transition.Consumer>
-        {pose => (
-          <Box pose={pose} style={style}>
-            {this.props.children}
-          </Box>
-        )}
-      </Transition.Consumer>
-    );
-  }
+function Slide(props: { children: Node, initial: 'enterLeft' | 'enterRight' }) {
+  const style = { ...boxStyle, ...config[props.initial] };
+  return (
+    <Transition.Consumer>
+      {pose => (
+        <Box pose={pose} style={style}>
+          {props.children}
+        </Box>
+      )}
+    </Transition.Consumer>
+  );
 }
 
 function sleep(n: number) {
   return new Promise(resolve => setTimeout(resolve, n));
 }
 
-class Slideshow extends Component<
+class Slideshow extends React.Component<
   {},
   { slide: number, direction: 'forward' | 'backward' },
 > {

@@ -68,68 +68,62 @@ class Frame extends React.Component<
   { store: any },
 > {
   state = { store: null };
-  iterator: ?AsyncGenerator<*, *, *>;
 
-  reduce(action) {
+  reduce = action => {
     this.setState(x => ({ store: this.props.reduce(x.store, action) }));
-  }
+  };
 
-  async onEnter() {
-    let cancelled = false;
-    if (this.props.onEnter) {
-      const iterator = (this.iterator = this.props.onEnter());
-      for await (const action of iterator) {
-        if (this.iterator !== iterator) {
-          cancelled = true;
-          // todo - iterator.cancel()
-          break;
-        }
-        this.reduce(action);
-      }
-      if (this.iterator !== iterator) {
-        cancelled = true;
-      }
-    }
-  }
-
-  async onExit() {
-    let cancelled = false;
-    if (this.props.onExit) {
-      const iterator = (this.iterator = this.props.onExit());
-      for await (const action of iterator) {
-        if (this.iterator !== iterator) {
-          cancelled = true;
-          break;
-          // todo - iterator.cancel()
-        }
-        this.reduce(action);
-      }
-      if (this.iterator !== iterator) {
-        cancelled = true;
-      }
-    }
-    if (!cancelled) {
-      this.props.onExited();
-    }
-  }
-
-  componentDidMount() {
-    this.onEnter();
-  }
-
-  componentDidUpdate(prevProps) {
-    if (!prevProps.exiting && this.props.exiting) {
-      this.onExit();
-    } else if (prevProps.exiting && !this.props.exiting) {
-      this.onEnter();
-    }
-  }
   render() {
     return (
       <FrameState.Provider value={this.state.store}>
+        <Iterator
+          key={this.props.exiting ? 'exiting' : 'entering'}
+          fn={this.props.exiting ? this.props.onExit : this.props.onEnter}
+          onAction={this.reduce}
+          onDone={this.props.exiting ? this.props.onExited : null}
+        />
         {this.props.children}
       </FrameState.Provider>
     );
+  }
+}
+
+class Iterator extends React.Component<{
+  fn: ?() => AsyncGenerator<*, *, *>,
+  onAction: any => void,
+  onDone: ?() => void,
+}> {
+  done: boolean = false;
+  unmounted: boolean = false;
+  iterator: ?AsyncGenerator<*, *, *>;
+
+  async componentDidMount() {
+    if (this.props.fn) {
+      const iterator = (this.iterator = this.props.fn());
+      for await (const action of iterator) {
+        if (this.unmounted) {
+          break;
+        }
+        this.props.onAction(action);
+      }
+    }
+    if (!this.unmounted) {
+      this.done = true;
+      this.props.onDone && this.props.onDone();
+    }
+  }
+
+  componentWillUnmount() {
+    this.unmounted = true;
+    const { iterator } = this;
+    if (iterator && !this.done) {
+      iterator.next(true);
+      iterator.return(true);
+    }
+  }
+
+  render() {
+    return null;
   }
 }
 
@@ -188,7 +182,9 @@ export default class Transition extends Component<
             onEnter={onEnter}
             onExit={onExit}
             onExited={() => {
-              this.setState(x => ({ stack: x.stack.filter(l => l.id !== id) }));
+              this.setState(prevState => ({
+                stack: prevState.stack.filter(x => x.id !== id),
+              }));
             }}
           >
             {children}

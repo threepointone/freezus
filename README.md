@@ -50,12 +50,10 @@ async generators handle cancellation pretty nicely
 onExit={async function*() => {
   try{
     await sleep(1000)
-  }  
-  catch(err){
-    // do the thing
-  }  
+  }
   finally {
-    // or here
+    const isCancelled = yield;
+    // do the thing
   }
 }}
 ```
