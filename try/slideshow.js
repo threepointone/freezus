@@ -60,24 +60,13 @@ class Slideshow extends React.Component<
   {},
   { slide: number, direction: 'forward' | 'backward' },
 > {
-  state = {
-    slide: 0,
-    direction: 'forward',
-  };
+  state = { slide: 0, direction: 'forward' };
 
-  next = () => {
-    this.setState({
-      slide: this.state.slide + 1,
-      direction: 'forward',
-    });
-  };
+  next = () =>
+    this.setState({ slide: this.state.slide + 1, direction: 'forward' });
 
-  prev = () => {
-    this.setState({
-      slide: this.state.slide - 1,
-      direction: 'backward',
-    });
-  };
+  prev = () =>
+    this.setState({ slide: this.state.slide - 1, direction: 'backward' });
 
   render() {
     return (

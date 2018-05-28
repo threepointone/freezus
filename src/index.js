@@ -142,8 +142,9 @@ class Frame extends React.Component<
 // if an `onEnter` occurs before an `onExit` finishes (ie - you render a component
 // again befire it's finished unmounting), then the same instance is reused,
 // letting you move it back in smoothly
-type ID = string | number;
-export type TransitionProps = {
+type ID = string | number | typeof undefined | null;
+
+type TransitionProps = {
   id: ID,
   children?: Node,
   onEnter?: () => AsyncGenerator<*, *, *>,
@@ -183,11 +184,11 @@ export default class Transition extends Component<
             exiting={i !== 0}
             onEnter={onEnter}
             onExit={onExit}
-            onExited={() => {
+            onExited={() =>
               this.setState(prevState => ({
                 stack: prevState.stack.filter(x => x.id !== id),
-              }));
-            }}
+              }))
+            }
           >
             {children}
           </Frame>
