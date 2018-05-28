@@ -54,42 +54,8 @@ class Freeze extends Component<{ cold: boolean, children: Node }> {
   }
 }
 
-const FrameState = React.createContext(null);
-
-class Frame extends React.Component<
-  {
-    children: Node,
-    onEnter: ?() => AsyncGenerator<*, *, *>,
-    onExit: ?() => AsyncGenerator<*, *, *>,
-    exiting: boolean,
-    reduce: (any, any) => any,
-    onExited: () => void,
-  },
-  { store: any },
-> {
-  state = { store: null };
-
-  reduce = action => {
-    this.setState(x => ({ store: this.props.reduce(x.store, action) }));
-  };
-
-  render() {
-    return (
-      <FrameState.Provider value={this.state.store}>
-        <Iterator
-          key={this.props.exiting ? 'exiting' : 'entering'}
-          fn={this.props.exiting ? this.props.onExit : this.props.onEnter}
-          onAction={this.reduce}
-          onDone={this.props.exiting ? this.props.onExited : null}
-        />
-        {this.props.children}
-      </FrameState.Provider>
-    );
-  }
-}
-
 class Iterator extends React.Component<{
-  fn: ?() => AsyncGenerator<*, *, *>,
+  generator: ?() => AsyncGenerator<*, *, *>,
   onAction: any => void,
   onDone: ?() => void,
 }> {
@@ -98,8 +64,8 @@ class Iterator extends React.Component<{
   iterator: ?AsyncGenerator<*, *, *>;
 
   async componentDidMount() {
-    if (this.props.fn) {
-      const iterator = (this.iterator = this.props.fn());
+    if (this.props.generator) {
+      const iterator = (this.iterator = this.props.generator());
       for await (const action of iterator) {
         if (this.unmounted) {
           break;
@@ -124,6 +90,42 @@ class Iterator extends React.Component<{
 
   render() {
     return null;
+  }
+}
+
+const FrameState = React.createContext(null);
+
+class Frame extends React.Component<
+  {
+    children: Node,
+    onEnter: ?() => AsyncGenerator<*, *, *>,
+    onExit: ?() => AsyncGenerator<*, *, *>,
+    exiting: boolean,
+    reduce: (any, any) => any,
+    onExited: () => void,
+  },
+  { store: any },
+> {
+  state = { store: null };
+
+  reduce = action => {
+    this.setState(x => ({ store: this.props.reduce(x.store, action) }));
+  };
+
+  render() {
+    return (
+      <FrameState.Provider value={this.state.store}>
+        <Iterator
+          key={this.props.exiting ? 'exiting' : 'entering'}
+          generator={
+            this.props.exiting ? this.props.onExit : this.props.onEnter
+          }
+          onAction={this.reduce}
+          onDone={this.props.exiting ? this.props.onExited : null}
+        />
+        {this.props.children}
+      </FrameState.Provider>
+    );
   }
 }
 

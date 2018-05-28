@@ -29,18 +29,18 @@ import Transition from 'freezus'
 </Transition>
 ```
 
+## rationale
+
+* traditionally, by rendering a new view in a position, we implicitly destroy the previous view (if it was different)
+* alternately, we have to manually maintain ui state, mixing our animation concerns with business logic.
+* `<Transition/>` abstracts that for you
+
 ## how does it work
 
 * fragments to render multiple phases at once
 * lifecycle - onEnter, onExit
 * cancellable
 * freeze redux state for the subtree
-
-the problem
-
-* by rendering a new view, we implicitly destroy the old view (if it was different)
-* alternately, we have to manually maintain ui state, mixing our animation concerns with business logic.
-* `<Transition/>` abstracts that for you
 
 ## cancellation
 
@@ -60,8 +60,13 @@ onExit={async function*() => {
 
 ## state
 
+by combining `reduce` and the `yield`s from `onEnter`/`onExit`, you can
+implement a redux-like pipeline to manage state. the default reducer is
+`(x, y) => y` i.e. - it saves the last action as the state. You can read
+from this state with `Transition.Consumer`
+
 ```jsx
-[actions][reducers];
+[todo];
 ```
 
 todo -
