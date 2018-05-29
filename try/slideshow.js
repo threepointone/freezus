@@ -2,8 +2,8 @@
 import 'regenerator-runtime/runtime';
 import React, { type Node } from 'react';
 import { render } from 'react-dom';
-import posed from 'react-pose';
 import { spring } from 'popmotion';
+import posed from 'react-pose';
 import Transition from '../src';
 
 const boxStyle = {
@@ -19,36 +19,39 @@ const boxStyle = {
   justifyContent: 'center',
 };
 
-const swoosh = {
-  transition: props =>
-    spring({
-      ...props,
-      stiffness: 10,
-      damping: 10,
-    }),
-};
+const swoosh = props => spring({ ...props, stiffness: 10, damping: 10 });
 
 const config = {
   enterLeft: { left: -100, opacity: 0 },
   enterRight: { left: 100, opacity: 0 },
-  enter: { left: 0, opacity: 1, ...swoosh },
-  exitLeft: { left: -100, opacity: 0, ...swoosh },
-  exitRight: { left: 100, opacity: 0, ...swoosh },
+  enter: { left: 0, opacity: 1, transition: swoosh },
+  exitLeft: { left: -100, opacity: 0, transition: swoosh },
+  exitRight: { left: 100, opacity: 0, transition: swoosh },
 };
 
 const Box = posed.div(config);
 
-function Slide(props: { children: Node, initial: 'enterLeft' | 'enterRight' }) {
-  const style = { ...boxStyle, ...config[props.initial] };
-  return (
-    <Transition.Consumer>
-      {pose => (
-        <Box pose={pose} style={style}>
-          {props.children}
-        </Box>
-      )}
-    </Transition.Consumer>
-  );
+type Direction = 'forward' | 'backward';
+
+class Slide extends React.Component<{
+  children: Node,
+  direction: Direction,
+}> {
+  style = {
+    ...boxStyle,
+    ...config[this.props.direction === 'forward' ? 'enterRight' : 'enterLeft'],
+  };
+  render() {
+    return (
+      <Transition.Consumer>
+        {pose => (
+          <Box pose={pose} style={this.style}>
+            {this.props.children}
+          </Box>
+        )}
+      </Transition.Consumer>
+    );
+  }
 }
 
 function sleep(n: number) {
@@ -57,15 +60,15 @@ function sleep(n: number) {
 
 class Slideshow extends React.Component<
   {},
-  { slide: number, direction: 'forward' | 'backward' },
+  { slide: number, direction: Direction },
 > {
   state = { slide: 0, direction: 'forward' };
 
   next = () =>
-    this.setState({ slide: this.state.slide + 1, direction: 'forward' });
+    this.setState(x => ({ slide: x.slide + 1, direction: 'forward' }));
 
   prev = () =>
-    this.setState({ slide: this.state.slide - 1, direction: 'backward' });
+    this.setState(x => ({ slide: x.slide - 1, direction: 'backward' }));
 
   render() {
     return (
@@ -82,13 +85,7 @@ class Slideshow extends React.Component<
             await sleep(2000);
           }.bind(this)}
         >
-          <Slide
-            initial={
-              this.state.direction === 'forward' ? 'enterRight' : 'enterLeft'
-            }
-          >
-            {this.state.slide}
-          </Slide>
+          <Slide direction={this.state.direction}>{this.state.slide}</Slide>
         </Transition>
       </div>
     );

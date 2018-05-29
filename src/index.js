@@ -152,18 +152,16 @@ type TransitionProps = {
 };
 
 type TransitionState = {
-  stack: Array<TransitionProps>,
+  stack: Array<TransitionProps /* todo -  & {appearing: boolean}*/>,
 };
 
 export default class Transition extends Component<
   TransitionProps,
   TransitionState,
 > {
-  state = {
-    stack: [this.props],
-  };
+  state = { stack: [this.props] };
 
-  static Consumer = FrameState.Consumer;
+  static Consumer = FrameState.Consumer; // todo - we want a consumer with (state, setState) => ...
 
   static getDerivedStateFromProps(
     nextProps: TransitionProps,

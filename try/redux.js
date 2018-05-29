@@ -25,10 +25,6 @@ function reducer(state = initial, action) {
   return state;
 }
 
-function same(x) {
-  return x;
-}
-
 const store = createStore(reducer);
 
 function increment() {
@@ -73,12 +69,9 @@ const App = connect(select, { increment, decrement })(props => (
   </Fragment>
 ));
 
-function Root() {
-  return (
-    <Provider store={store}>
-      <App />
-    </Provider>
-  );
-}
-
-render(<Root />, window.root);
+render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  window.root,
+);

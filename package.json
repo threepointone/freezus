@@ -12,21 +12,33 @@
     "regenerator-runtime": "^0.11.1"
   },
   "scripts": {
-    "build": "babel src -d lib"
+    "build": "babel src -d lib",
+    "start": "parcel try/index.html"
   },
   "devDependencies": {
+    "babel-eslint": "^7.2.3",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^1.7.0",
     "babel-preset-react": "^6.24.1",
     "babel-preset-stage-0": "^6.24.1",
+    "eslint": "^4.1.1",
+    "eslint-config-react-app": "^2.1.0",
+    "eslint-plugin-flowtype": "^2.34.1",
+    "eslint-plugin-import": "^2.6.0",
+    "eslint-plugin-jsx-a11y": "^5.1.1",
+    "eslint-plugin-react": "^7.1.0",
     "flow-bin": "^0.73.0",
     "parcel-bundler": "^1.8.1",
     "popmotion": "^8.2.3",
     "popmotion-pose": "^1.5.0",
+    "react-art": "^16.4.0",
     "react-dom": "16.4.0",
     "react-motion": "^0.5.2",
-    "react-native-web": "^0.7.2",
+    "react-native-web": "^0.7.3",
     "react-pose": "^1.6.4"
+  },
+  "alias": {
+    "react-native": "react-native-web"
   }
 }
