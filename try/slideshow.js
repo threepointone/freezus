@@ -42,14 +42,11 @@ class Slide extends React.Component<{
     ...config[this.props.direction === 'forward' ? 'enterRight' : 'enterLeft'],
   };
   render() {
+    const pose = adopt(<Transition.Consumer />);
     return (
-      <Transition.Consumer>
-        {pose => (
-          <Box pose={pose} style={this.style}>
-            {this.props.children}
-          </Box>
-        )}
-      </Transition.Consumer>
+      <Box pose={pose} style={this.style}>
+        {this.props.children}
+      </Box>
     );
   }
 }
@@ -58,8 +55,8 @@ function sleep(n: number) {
   return new Promise(resolve => setTimeout(resolve, n));
 }
 
-class Slideshow extends React.Component<
-  {},
+export class Slideshow extends React.Component<
+  { fn: number => Node },
   { slide: number, direction: Direction },
 > {
   state = { slide: 0, direction: 'forward' };
@@ -85,10 +82,12 @@ class Slideshow extends React.Component<
             await sleep(2000);
           }.bind(this)}
         >
-          <Slide direction={this.state.direction}>{this.state.slide}</Slide>
+          <Slide direction={this.state.direction}>
+            {this.props.fn(this.state.slide)}
+          </Slide>
         </Transition>
       </div>
     );
   }
 }
-render(<Slideshow />, window.root);
+render(<Slideshow fn={x => x} />, window.root);
