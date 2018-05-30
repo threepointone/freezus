@@ -2,7 +2,6 @@
 import 'regenerator-runtime/runtime';
 import React, { type Node } from 'react';
 import { render } from 'react-dom';
-import { spring } from 'popmotion';
 import posed from 'react-pose';
 import Transition from '../src';
 
@@ -19,11 +18,14 @@ const boxStyle = {
   justifyContent: 'center',
 };
 
-const swoosh = props => spring({ ...props, stiffness: 10, damping: 10 });
+const swoosh = { type: 'spring', stiffness: 10, damping: 10 };
+
+const initial = {
+  backward: { left: -100, opacity: 0 },
+  forward: { left: 100, opacity: 0 },
+};
 
 const config = {
-  enterLeft: { left: -100, opacity: 0 },
-  enterRight: { left: 100, opacity: 0 },
   enter: { left: 0, opacity: 1, transition: swoosh },
   exitLeft: { left: -100, opacity: 0, transition: swoosh },
   exitRight: { left: 100, opacity: 0, transition: swoosh },
@@ -39,9 +41,10 @@ class Slide extends React.Component<{
 }> {
   style = {
     ...boxStyle,
-    ...config[this.props.direction === 'forward' ? 'enterRight' : 'enterLeft'],
+    ...initial[this.props.direction],
   };
   render() {
+    // $FlowFixMe
     const pose = adopt(<Transition.Consumer />);
     return (
       <Box pose={pose} style={this.style}>

@@ -2,12 +2,29 @@
 import 'regenerator-runtime/runtime';
 import Transition from '../src/index';
 import React, { type Node } from 'react';
-//$FlowFixMe
-import { AppRegistry, Animated, StyleSheet, Text, View } from 'react-native';
+
+import {
+  AppRegistry,
+  Animated,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native-web';
 import { Slideshow } from './slideshow';
 
-class Shared extends React.Component<> {
+class Shared extends React.Component<{ children: Node }> {
+  getDerivedStateFromProps(nextProps, prevState) {
+    // if entering and previously available in stack
+    // opacity: 0
+    // onMount, measure dimensions, delta from previous one
+    // add to stack
+    // opacity one, [stack transforms]
+    // set state, rerender
+    // if exiting
+    //
+  }
   render() {
+    // $FlowFixMe
     const pose = adopt(<Transition.Consumer />);
     return this.props.children;
   }

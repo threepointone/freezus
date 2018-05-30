@@ -31,8 +31,8 @@
   resolved "https://registry.yarnpkg.com/@types/invariant/-/invariant-2.2.29.tgz#aa845204cd0a289f65d47e0de63a6a815e30cc66"
 
 "@types/node@^10.0.5":
-  version "10.1.2"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.1.2.tgz#1b928a0baa408fc8ae3ac012cc81375addc147c6"
+  version "10.1.4"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.1.4.tgz#606651d3f8a8bec08b8cb262161aab9209f4a29d"
 
 abab@^1.0.4:
   version "1.0.4"
@@ -2969,7 +2969,7 @@ hawk@3.1.3, hawk@~3.1.3:
     hoek "2.x.x"
     sntp "1.x.x"
 
-hey-listen@^1.0.2, hey-listen@^1.0.4, hey-listen@^1.0.5:
+hey-listen@^1.0.4, hey-listen@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/hey-listen/-/hey-listen-1.0.5.tgz#6d0a3a2f60177f65bc4404d571a00025bf5dc20e"
 
@@ -4859,21 +4859,13 @@ pn@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/pn/-/pn-1.1.0.tgz#e2f4cef0e219f463c179ab37463e4e1ecdccbafb"
 
-popmotion-pose@^1.4.4, popmotion-pose@^1.5.0:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/popmotion-pose/-/popmotion-pose-1.5.0.tgz#44eeeafa9fc8f2c43b11c05f8b894fb8345eee60"
+popmotion-pose@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/popmotion-pose/-/popmotion-pose-2.0.1.tgz#2ded2a460cc011245432f6bb784d13e53de67050"
   dependencies:
-    popmotion "^8.2.1"
-    pose-core "^0.5.2"
-
-popmotion@^8.2.1:
-  version "8.2.2"
-  resolved "https://registry.yarnpkg.com/popmotion/-/popmotion-8.2.2.tgz#0d1a0065e8ed626124e904688a43159491fb8b7e"
-  dependencies:
-    framesync "^3.1.9"
-    hey-listen "^1.0.5"
-    style-value-types "^1.0.8"
-    stylefire "^2.0.2"
+    popmotion "^8.2.3"
+    pose-core "^0.7.3"
+    style-value-types "^1.0.10"
     tslib "^1.9.1"
 
 popmotion@^8.2.3:
@@ -4886,13 +4878,14 @@ popmotion@^8.2.3:
     stylefire "^2.0.2"
     tslib "^1.9.1"
 
-pose-core@^0.5.2:
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/pose-core/-/pose-core-0.5.2.tgz#955ff71feba1225539e086500ef193840d399659"
+pose-core@^0.7.3:
+  version "0.7.3"
+  resolved "https://registry.yarnpkg.com/pose-core/-/pose-core-0.7.3.tgz#9cb2e97eb860cb7c28e17cf269f9a8d72c244d9a"
   dependencies:
     "@types/invariant" "^2.2.29"
     "@types/node" "^10.0.5"
-    hey-listen "^1.0.2"
+    hey-listen "^1.0.5"
+    tslib "^1.9.1"
 
 posix-character-classes@^0.1.0:
   version "0.1.1"
@@ -5340,12 +5333,13 @@ react-native-web@^0.7.3:
     prop-types "^15.6.0"
     react-timer-mixin "^0.13.3"
 
-react-pose@^1.6.4:
-  version "1.6.4"
-  resolved "https://registry.yarnpkg.com/react-pose/-/react-pose-1.6.4.tgz#7ecf491269557e36de04f7009ddc84c161cfa042"
+react-pose@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/react-pose/-/react-pose-2.0.0.tgz#51845980146376303c4a056d6f534a460cc62c10"
   dependencies:
-    hey-listen "^1.0.2"
-    popmotion-pose "^1.4.4"
+    hey-listen "^1.0.5"
+    popmotion-pose "^2.0.1"
+    tslib "^1.9.1"
 
 react-redux@^5.0.7:
   version "5.0.7"
@@ -6132,7 +6126,7 @@ strip-json-comments@~2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a"
 
-style-value-types@^1.0.6, style-value-types@^1.0.8:
+style-value-types@^1.0.10, style-value-types@^1.0.6, style-value-types@^1.0.8:
   version "1.0.10"
   resolved "https://registry.yarnpkg.com/style-value-types/-/style-value-types-1.0.10.tgz#e46a11922f7b9efe265fb22bfd3b5429611bc016"
 
@@ -6367,8 +6361,8 @@ trim-right@^1.0.1:
   resolved "https://registry.yarnpkg.com/trim-right/-/trim-right-1.0.1.tgz#cb2e1203067e0c8de1f614094b9fe45704ea6003"
 
 tslib@^1.9.1:
-  version "1.9.1"
-  resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.9.1.tgz#a5d1f0532a49221c87755cfcc89ca37197242ba7"
+  version "1.9.2"
+  resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.9.2.tgz#8be0cc9a1f6dc7727c38deb16c2ebd1a2892988e"
 
 tty-browserify@0.0.0:
   version "0.0.0"

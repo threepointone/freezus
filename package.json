@@ -34,12 +34,12 @@
     "jest": "^23.0.1",
     "parcel-bundler": "^1.8.1",
     "popmotion": "^8.2.3",
-    "popmotion-pose": "^1.5.0",
+    "popmotion-pose": "^2.0.1",
     "react-art": "^16.4.0",
     "react-dom": "16.4.0",
     "react-motion": "^0.5.2",
     "react-native-web": "^0.7.3",
-    "react-pose": "^1.6.4"
+    "react-pose": "^2.0.0"
   },
   "alias": {
     "react-native": "react-native-web"
